@@ -1,10 +1,6 @@
-[![](https://images.microbadger.com/badges/image/futurevision/aws-s3-sync.svg)](https://microbadger.com/images/futurevision/aws-s3-sync "Get your own image badge on microbadger.com")
-[![](https://images.microbadger.com/badges/version/futurevision/aws-s3-sync.svg)](https://microbadger.com/images/futurevision/aws-s3-sync "Get your own version badge on microbadger.com")
+# muditjuneja/docker-s3sync-invalidate-cloudfront
 
-
-# futurevision/aws-s3-sync
-
-Docker container that periodically syncs a folder to Amazon S3 using the [AWS Command Line Interface tool](https://aws.amazon.com/cli/) and cron.
+Docker container that periodically syncs a folder to Amazon S3 using the [AWS Command Line Interface tool](https://aws.amazon.com/cli/) and cron and also allows the user to request invalidation in a given cloudfront distribution
 
 ## Usage
 
@@ -17,6 +13,8 @@ Docker container that periodically syncs a folder to Amazon S3 using the [AWS Co
 * `-e SECRET=<SECRET>`: User Access Secret
 * `-e REGION=<REGION>`: Region of your bucket
 * `-e BUCKET=<BUCKET>`: The name of your bucket
+* `-e $AWS_CLOUDFRONT_DISTRIBUTION=<AWS_CLOUDFRONT_DISTRIBUTION>` : AWS CloudFront Distribution Id (Optional)
+* `-e $AWS_CLOUDFRONT_PATHS=<AWS_CLOUDFRONT_PATHS>` : CloudFront paths to invalidate and can be passed as string like "index.html, blog/test-blog.html" (Optional)
 * `-v /path/to/backup:/data:ro`: mount target local folder to container's data folder. Content of this folder will be synced with S3 bucket.
 
 ### Optional parameters:
@@ -50,8 +48,22 @@ Sync just once (container is deleted afterwards):
         -v /home/user/data:/data:ro \
         futurevision/aws-s3-sync now
 
+Sync every hour with cron schedule (container keeps running) and also request invaldation in a given cloudfron distribution:
+
+    docker run -d \
+        -e KEY=mykey \
+        -e SECRET=mysecret \
+		-e REGION=region \
+        -e BUCKET=mybucket \
+        -e CRON_SCHEDULE="0 * * * *" \
+		-e BUCKET_PATH=/path \
+        -e AWS_CLOUDFRONT_DISTRIBUTION=E1UI1MJJJN78IC \
+        -e AWS_CLOUDFRONT_PATHS="/index.html" \
+        -v /home/user/data:/data:ro \
+        futurevision/aws-s3-sync
+
 ## Credits
 
-This container is heavily inspired by [istepanov/backup-to-s3](https://github.com/istepanov/docker-backup-to-s3/blob/master/README.md).
+This container is heavily inspired by [futurevision/docker-aws-s3-sync](https://github.com/futurevision/docker-aws-s3-sync) which was heavily inspired by [istepanov/backup-to-s3](https://github.com/istepanov/docker-backup-to-s3/blob/master/README.md).
 
-The main difference is that this container is using Alpine Linux instead of Debian to be more light weight. It also uses a different method of using the AWS CLI tool.
+The main difference is that this container allows a user to request invaldation requests in a given cloudfront distribution id which could come up really handy and also updates Alpine Linux version.
